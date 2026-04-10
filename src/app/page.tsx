@@ -8,9 +8,9 @@ async function getStats() {
       prisma.donation.count(),
       prisma.donation.count({ where: { status: 'AVAILABLE' } }),
       prisma.user.count(),
-      prisma.donation.count({ where: { category: 'FOOD', status: 'AVAILABLE' } }),
+      prisma.donation.count({ where: { category: 'FOOD',    status: 'AVAILABLE' } }),
       prisma.donation.count({ where: { category: 'CLOTHES', status: 'AVAILABLE' } }),
-      prisma.donation.count({ where: { category: 'BOOKS', status: 'AVAILABLE' } }),
+      prisma.donation.count({ where: { category: 'BOOKS',   status: 'AVAILABLE' } }),
     ]);
   return { totalDonations, activeDonations, totalUsers, foodCount, clothesCount, booksCount };
 }
@@ -65,12 +65,11 @@ export default async function HomePage() {
             <p className="text-gray-600 mt-1">Community Members</p>
           </div>
         </div>
-        {/* Category Quick Links */}
         <div className="max-w-3xl mx-auto px-4 mt-8 grid grid-cols-3 gap-4">
           {[
-            { emoji: '🍱', label: 'Food', count: stats.foodCount, cat: 'FOOD' },
+            { emoji: '🍱', label: 'Food',    count: stats.foodCount,    cat: 'FOOD'    },
             { emoji: '👕', label: 'Clothes', count: stats.clothesCount, cat: 'CLOTHES' },
-            { emoji: '📚', label: 'Books', count: stats.booksCount, cat: 'BOOKS' },
+            { emoji: '📚', label: 'Books',   count: stats.booksCount,   cat: 'BOOKS'   },
           ].map((c) => (
             <Link
               key={c.cat}
@@ -85,7 +84,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* Recent Donations */}
+      {/* Recent */}
       <section className="max-w-6xl mx-auto px-4 py-16">
         <div className="flex justify-between items-center mb-8">
           <h2 className="text-2xl font-bold text-gray-800">Latest Donations</h2>
@@ -94,7 +93,7 @@ export default async function HomePage() {
         {donations.length === 0 ? (
           <div className="text-center py-16 text-gray-500">
             <p className="text-5xl mb-4">🎁</p>
-            <p className="text-xl">No donations available yet. Be the first to donate!</p>
+            <p className="text-xl">No donations yet. Be the first!</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -109,8 +108,8 @@ export default async function HomePage() {
           <h2 className="text-3xl font-bold text-center text-gray-800 mb-12">How It Works</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {[
-              { icon: '📦', title: 'Post a Donation', desc: 'List food, clothes, or books with details like quantity, type, and pickup location.' },
-              { icon: '🔔', title: 'NGOs Get Notified', desc: 'Registered NGOs and volunteers browse and claim available donations near them.' },
+              { icon: '📦', title: 'Post a Donation',      desc: 'List food, clothes, or books with details like quantity, type, and pickup location.' },
+              { icon: '🔔', title: 'NGOs Get Notified',    desc: 'Registered NGOs and volunteers browse and claim available donations near them.' },
               { icon: '🚗', title: 'Collect & Distribute', desc: 'Volunteers pick up items and ensure they reach those who need it most.' },
             ].map((step) => (
               <div key={step.title} className="text-center">

@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { timeUntilExpiry, timeAgo } from '@/lib/utils';
 import { CATEGORY_COLORS, CATEGORY_EMOJI, CategoryKey } from '@/lib/donationConfig';
 
-type DonationWithDonor = {
+export type DonationWithDonor = {
   id: string;
   title: string;
   description?: string | null;
@@ -45,10 +45,7 @@ export function DonationCard({
     if (!session) { router.push('/auth/login'); return; }
     setLoading(true);
     const res = await fetch(`/api/donations/${donation.id}/claim`, { method: 'POST' });
-    if (res.ok) {
-      setCurrentStatus('CLAIMED');
-      router.refresh();
-    }
+    if (res.ok) { setCurrentStatus('CLAIMED'); router.refresh(); }
     setLoading(false);
   }
 
@@ -64,8 +61,8 @@ export function DonationCard({
   }
 
   const catKey = donation.category as CategoryKey;
-  const catColor = CATEGORY_COLORS[catKey] || 'bg-gray-100 text-gray-600';
-  const catEmoji = CATEGORY_EMOJI[catKey] || '🎁';
+  const catColor = CATEGORY_COLORS[catKey] ?? 'bg-gray-100 text-gray-600';
+  const catEmoji = CATEGORY_EMOJI[catKey] ?? '🎁';
   const expiry = donation.expiresAt ? timeUntilExpiry(donation.expiresAt) : null;
   const isExpiringSoon = expiry && expiry.includes('h left') && parseInt(expiry) < 6;
 
@@ -76,13 +73,12 @@ export function DonationCard({
           <span className="text-2xl shrink-0">{catEmoji}</span>
           <h3 className="font-semibold text-gray-800 text-base leading-tight truncate">{donation.title}</h3>
         </div>
-        <span className={`badge ${statusColors[currentStatus] || statusColors.EXPIRED} shrink-0`}>
+        <span className={`badge ${statusColors[currentStatus] ?? statusColors.EXPIRED} shrink-0`}>
           {currentStatus}
         </span>
       </div>
 
-      {/* Category + type badge */}
-      <div className="flex gap-2">
+      <div className="flex gap-2 flex-wrap">
         <span className={`badge ${catColor}`}>{donation.category}</span>
         <span className="badge bg-gray-100 text-gray-600">{donation.itemType}</span>
       </div>
@@ -97,9 +93,7 @@ export function DonationCard({
         {expiry && (
           <div className="col-span-2">
             <span className="text-gray-400">Expires:</span>{' '}
-            <span className={`font-medium ${isExpiringSoon ? 'text-red-600' : 'text-gray-700'}`}>
-              {expiry}
-            </span>
+            <span className={`font-medium ${isExpiringSoon ? 'text-red-600' : 'text-gray-700'}`}>{expiry}</span>
           </div>
         )}
       </div>
