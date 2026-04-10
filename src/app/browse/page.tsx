@@ -7,9 +7,9 @@ export const dynamic = 'force-dynamic';
 export default async function BrowsePage({
   searchParams,
 }: {
-  searchParams: { city?: string; category?: string; status?: string };
+  searchParams: Promise<{ city?: string; category?: string; status?: string }>;
 }) {
-  const { city, category, status } = searchParams;
+  const { city, category, status } = await searchParams;
 
   const donations = await prisma.donation.findMany({
     where: {
