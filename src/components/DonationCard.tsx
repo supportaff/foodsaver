@@ -18,7 +18,7 @@ type DonationWithDonor = {
   address: string;
   city: string;
   createdAt: Date | string;
-  donor: { name?: string | null; city: string };
+  donor: { name?: string | null; city?: string | null };
   claimedBy?: { name?: string | null } | null;
 };
 
@@ -105,7 +105,7 @@ export function DonationCard({
       </div>
 
       <div className="text-xs text-gray-400 border-t pt-2">
-        📍 {donation.address} · by {donation.donor.name || 'Anonymous'} · {timeAgo(donation.createdAt)}
+        📍 {donation.address} · by {donation.donor.name ?? 'Anonymous'} · {timeAgo(donation.createdAt)}
         {donation.claimedBy && <span> · Claimed by {donation.claimedBy.name}</span>}
       </div>
 
