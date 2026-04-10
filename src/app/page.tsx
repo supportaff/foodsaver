@@ -1,42 +1,24 @@
 import Link from 'next/link';
-import { prisma } from '@/lib/prisma';
-import { DonationCard } from '@/components/DonationCard';
+import DonationCard from '@/components/DonationCard';
+import { DONATIONS, STATS, CATEGORY_META } from '@/lib/dummyData';
 
-async function getStats() {
-  const [totalDonations, activeDonations, totalUsers, foodCount, clothesCount, booksCount] =
-    await Promise.all([
-      prisma.donation.count(),
-      prisma.donation.count({ where: { status: 'AVAILABLE' } }),
-      prisma.user.count(),
-      prisma.donation.count({ where: { category: 'FOOD',    status: 'AVAILABLE' } }),
-      prisma.donation.count({ where: { category: 'CLOTHES', status: 'AVAILABLE' } }),
-      prisma.donation.count({ where: { category: 'BOOKS',   status: 'AVAILABLE' } }),
-    ]);
-  return { totalDonations, activeDonations, totalUsers, foodCount, clothesCount, booksCount };
-}
-
-async function getRecentDonations() {
-  return prisma.donation.findMany({
-    where: { status: 'AVAILABLE' },
-    include: { donor: { select: { name: true, city: true } } },
-    orderBy: { createdAt: 'desc' },
-    take: 6,
-  });
-}
-
-export default async function HomePage() {
-  const [stats, donations] = await Promise.all([getStats(), getRecentDonations()]);
+export default function HomePage() {
+  const recent = DONATIONS.filter((d) => d.status === 'AVAILABLE').slice(0, 6);
 
   return (
     <div>
       {/* Hero */}
-      <section className="bg-gradient-to-br from-green-600 to-emerald-700 text-white py-20 px-4">
+      <section className="bg-gradient-to-br from-green-600 to-emerald-700 text-white py-24 px-4">
         <div className="max-w-5xl mx-auto text-center">
-          <h1 className="text-4xl md:text-6xl font-bold mb-6">
+          <div className="inline-block bg-white/20 text-white text-sm font-medium px-4 py-1.5 rounded-full mb-6">
+            🌟 Trusted by {STATS.ngoPartners} NGOs across {STATS.citiesCovered} cities
+          </div>
+          <h1 className="text-4xl md:text-6xl font-bold mb-6 leading-tight">
             Give More. Waste Less.<br />Help Communities.
           </h1>
-          <p className="text-xl md:text-2xl text-green-100 mb-8 max-w-2xl mx-auto">
-            Donate surplus food 🍱, clothes 👕, and books 📚 to NGOs and volunteers who need them.
+          <p className="text-xl text-green-100 mb-10 max-w-2xl mx-auto">
+            Donate surplus food 🍱, clothes 👕, and books 📚 to NGOs and volunteers
+            who deliver them to those in need.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/donate" className="bg-white text-green-700 font-bold py-3 px-8 rounded-lg hover:bg-green-50 transition-colors">
@@ -49,76 +31,89 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* Stats */}
-      <section className="bg-white py-12 border-b">
-        <div className="max-w-5xl mx-auto px-4 grid grid-cols-2 md:grid-cols-3 gap-6 text-center">
-          <div>
-            <p className="text-4xl font-bold text-green-600">{stats.totalDonations}</p>
-            <p className="text-gray-600 mt-1">Total Donations</p>
-          </div>
-          <div>
-            <p className="text-4xl font-bold text-green-600">{stats.activeDonations}</p>
-            <p className="text-gray-600 mt-1">Available Now</p>
-          </div>
-          <div>
-            <p className="text-4xl font-bold text-green-600">{stats.totalUsers}</p>
-            <p className="text-gray-600 mt-1">Community Members</p>
-          </div>
-        </div>
-        <div className="max-w-3xl mx-auto px-4 mt-8 grid grid-cols-3 gap-4">
+      {/* Stats Bar */}
+      <section className="bg-green-700 text-white py-6">
+        <div className="max-w-5xl mx-auto px-4 grid grid-cols-2 md:grid-cols-5 gap-4 text-center">
           {[
-            { emoji: '🍱', label: 'Food',    count: stats.foodCount,    cat: 'FOOD'    },
-            { emoji: '👕', label: 'Clothes', count: stats.clothesCount, cat: 'CLOTHES' },
-            { emoji: '📚', label: 'Books',   count: stats.booksCount,   cat: 'BOOKS'   },
-          ].map((c) => (
-            <Link
-              key={c.cat}
-              href={`/browse?category=${c.cat}`}
-              className="flex flex-col items-center p-4 rounded-xl border-2 border-gray-100 hover:border-green-400 hover:bg-green-50 transition-all"
-            >
-              <span className="text-4xl mb-1">{c.emoji}</span>
-              <span className="font-semibold text-gray-700">{c.label}</span>
-              <span className="text-sm text-green-600 font-medium">{c.count} available</span>
-            </Link>
+            { label: 'Total Donations',  value: STATS.totalDonations },
+            { label: 'Available Now',    value: STATS.activeDonations },
+            { label: 'NGO Partners',     value: STATS.ngoPartners },
+            { label: 'Cities Covered',   value: STATS.citiesCovered },
+            { label: 'Lives Impacted',   value: `${STATS.livesImpacted}+` },
+          ].map((s) => (
+            <div key={s.label}>
+              <p className="text-2xl font-bold">{s.value}</p>
+              <p className="text-green-200 text-xs mt-0.5">{s.label}</p>
+            </div>
           ))}
         </div>
       </section>
 
-      {/* Recent */}
-      <section className="max-w-6xl mx-auto px-4 py-16">
-        <div className="flex justify-between items-center mb-8">
-          <h2 className="text-2xl font-bold text-gray-800">Latest Donations</h2>
-          <Link href="/browse" className="text-green-600 hover:text-green-700 font-medium">View all →</Link>
+      {/* Category Quick Links */}
+      <section className="bg-white border-b py-10">
+        <div className="max-w-3xl mx-auto px-4">
+          <h2 className="text-center text-lg font-semibold text-gray-600 mb-6">What would you like to donate?</h2>
+          <div className="grid grid-cols-3 gap-4">
+            {(Object.entries(CATEGORY_META) as [string, typeof CATEGORY_META[keyof typeof CATEGORY_META]][]).map(([key, c]) => (
+              <Link
+                key={key}
+                href={`/browse?category=${key}`}
+                className="flex flex-col items-center p-6 rounded-xl border-2 border-gray-100 hover:border-green-400 hover:bg-green-50 transition-all group"
+              >
+                <span className="text-5xl mb-2 group-hover:scale-110 transition-transform">{c.emoji}</span>
+                <span className="font-bold text-gray-700">{c.label}</span>
+                <span className="text-sm text-green-600 font-medium mt-1">{c.count} available</span>
+              </Link>
+            ))}
+          </div>
         </div>
-        {donations.length === 0 ? (
-          <div className="text-center py-16 text-gray-500">
-            <p className="text-5xl mb-4">🎁</p>
-            <p className="text-xl">No donations yet. Be the first!</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {donations.map((d) => <DonationCard key={d.id} donation={d} />)}
-          </div>
-        )}
       </section>
 
-      {/* How it works */}
+      {/* Recent Donations */}
+      <section className="max-w-6xl mx-auto px-4 py-16">
+        <div className="flex justify-between items-center mb-8">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-800">Latest Donations</h2>
+            <p className="text-gray-500 text-sm mt-1">Freshly listed – claim before they&apos;re gone!</p>
+          </div>
+          <Link href="/browse" className="btn-secondary text-sm">View All →</Link>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {recent.map((d) => <DonationCard key={d.id} donation={d} />)}
+        </div>
+      </section>
+
+      {/* How It Works */}
       <section className="bg-green-50 py-16 px-4">
         <div className="max-w-5xl mx-auto">
           <h2 className="text-3xl font-bold text-center text-gray-800 mb-12">How It Works</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {[
-              { icon: '📦', title: 'Post a Donation',      desc: 'List food, clothes, or books with details like quantity, type, and pickup location.' },
-              { icon: '🔔', title: 'NGOs Get Notified',    desc: 'Registered NGOs and volunteers browse and claim available donations near them.' },
-              { icon: '🚗', title: 'Collect & Distribute', desc: 'Volunteers pick up items and ensure they reach those who need it most.' },
-            ].map((step) => (
-              <div key={step.title} className="text-center">
-                <div className="text-5xl mb-4">{step.icon}</div>
-                <h3 className="text-xl font-semibold text-gray-800 mb-2">{step.title}</h3>
-                <p className="text-gray-600">{step.desc}</p>
+              { icon: '📦', step: '01', title: 'Post a Donation',      desc: 'List food, clothes, or books with quantity, type, and pickup location. Takes less than 2 minutes.' },
+              { icon: '🔔', step: '02', title: 'NGOs Get Notified',    desc: 'Verified NGOs and volunteers nearby see your listing and can claim it immediately.' },
+              { icon: '🚗', step: '03', title: 'Collect & Distribute', desc: 'Volunteers coordinate pickup and ensure items reach families and individuals who need them.' },
+            ].map((s) => (
+              <div key={s.title} className="text-center bg-white rounded-2xl p-8 shadow-sm">
+                <div className="text-xs font-bold text-green-500 mb-2">STEP {s.step}</div>
+                <div className="text-5xl mb-4">{s.icon}</div>
+                <h3 className="text-xl font-semibold text-gray-800 mb-2">{s.title}</h3>
+                <p className="text-gray-500 text-sm leading-relaxed">{s.desc}</p>
               </div>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* Disclaimer Banner */}
+      <section className="bg-amber-50 border-y border-amber-200 py-6 px-4">
+        <div className="max-w-4xl mx-auto flex gap-3 items-start">
+          <span className="text-2xl shrink-0">⚠️</span>
+          <p className="text-sm text-amber-800">
+            <strong>Disclaimer:</strong> GiveSaver is a platform to connect donors with recipients.
+            We do not verify the quality, safety, or condition of donated items.
+            Donors and recipients are solely responsible for ensuring items are safe and appropriate.
+            <Link href="/disclaimer" className="underline ml-1 font-medium">Read full disclaimer →</Link>
+          </p>
         </div>
       </section>
     </div>
