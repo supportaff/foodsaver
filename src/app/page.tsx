@@ -3,12 +3,16 @@ import { prisma } from '@/lib/prisma';
 import { DonationCard } from '@/components/DonationCard';
 
 async function getStats() {
-  const [totalDonations, activeDonations, totalUsers] = await Promise.all([
-    prisma.donation.count(),
-    prisma.donation.count({ where: { status: 'AVAILABLE' } }),
-    prisma.user.count(),
-  ]);
-  return { totalDonations, activeDonations, totalUsers };
+  const [totalDonations, activeDonations, totalUsers, foodCount, clothesCount, booksCount] =
+    await Promise.all([
+      prisma.donation.count(),
+      prisma.donation.count({ where: { status: 'AVAILABLE' } }),
+      prisma.user.count(),
+      prisma.donation.count({ where: { category: 'FOOD', status: 'AVAILABLE' } }),
+      prisma.donation.count({ where: { category: 'CLOTHES', status: 'AVAILABLE' } }),
+      prisma.donation.count({ where: { category: 'BOOKS', status: 'AVAILABLE' } }),
+    ]);
+  return { totalDonations, activeDonations, totalUsers, foodCount, clothesCount, booksCount };
 }
 
 async function getRecentDonations() {
@@ -29,14 +33,14 @@ export default async function HomePage() {
       <section className="bg-gradient-to-br from-green-600 to-emerald-700 text-white py-20 px-4">
         <div className="max-w-5xl mx-auto text-center">
           <h1 className="text-4xl md:text-6xl font-bold mb-6">
-            🌱 Reduce Food Waste.<br />Feed Communities.
+            Give More. Waste Less.<br />Help Communities.
           </h1>
           <p className="text-xl md:text-2xl text-green-100 mb-8 max-w-2xl mx-auto">
-            Connect surplus food with NGOs and volunteers who can put it to good use.
+            Donate surplus food 🍱, clothes 👕, and books 📚 to NGOs and volunteers who need them.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/donate" className="bg-white text-green-700 font-bold py-3 px-8 rounded-lg hover:bg-green-50 transition-colors">
-              Donate Food
+              Donate Now
             </Link>
             <Link href="/browse" className="border-2 border-white text-white font-bold py-3 px-8 rounded-lg hover:bg-green-600 transition-colors">
               Browse Donations
@@ -47,7 +51,7 @@ export default async function HomePage() {
 
       {/* Stats */}
       <section className="bg-white py-12 border-b">
-        <div className="max-w-5xl mx-auto px-4 grid grid-cols-3 gap-8 text-center">
+        <div className="max-w-5xl mx-auto px-4 grid grid-cols-2 md:grid-cols-3 gap-6 text-center">
           <div>
             <p className="text-4xl font-bold text-green-600">{stats.totalDonations}</p>
             <p className="text-gray-600 mt-1">Total Donations</p>
@@ -61,26 +65,40 @@ export default async function HomePage() {
             <p className="text-gray-600 mt-1">Community Members</p>
           </div>
         </div>
+        {/* Category Quick Links */}
+        <div className="max-w-3xl mx-auto px-4 mt-8 grid grid-cols-3 gap-4">
+          {[
+            { emoji: '🍱', label: 'Food', count: stats.foodCount, cat: 'FOOD' },
+            { emoji: '👕', label: 'Clothes', count: stats.clothesCount, cat: 'CLOTHES' },
+            { emoji: '📚', label: 'Books', count: stats.booksCount, cat: 'BOOKS' },
+          ].map((c) => (
+            <Link
+              key={c.cat}
+              href={`/browse?category=${c.cat}`}
+              className="flex flex-col items-center p-4 rounded-xl border-2 border-gray-100 hover:border-green-400 hover:bg-green-50 transition-all"
+            >
+              <span className="text-4xl mb-1">{c.emoji}</span>
+              <span className="font-semibold text-gray-700">{c.label}</span>
+              <span className="text-sm text-green-600 font-medium">{c.count} available</span>
+            </Link>
+          ))}
+        </div>
       </section>
 
       {/* Recent Donations */}
       <section className="max-w-6xl mx-auto px-4 py-16">
         <div className="flex justify-between items-center mb-8">
-          <h2 className="text-2xl font-bold text-gray-800">Available Donations</h2>
-          <Link href="/browse" className="text-green-600 hover:text-green-700 font-medium">
-            View all →
-          </Link>
+          <h2 className="text-2xl font-bold text-gray-800">Latest Donations</h2>
+          <Link href="/browse" className="text-green-600 hover:text-green-700 font-medium">View all →</Link>
         </div>
         {donations.length === 0 ? (
           <div className="text-center py-16 text-gray-500">
-            <p className="text-5xl mb-4">🍽️</p>
+            <p className="text-5xl mb-4">🎁</p>
             <p className="text-xl">No donations available yet. Be the first to donate!</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {donations.map((donation) => (
-              <DonationCard key={donation.id} donation={donation} />
-            ))}
+            {donations.map((d) => <DonationCard key={d.id} donation={d} />)}
           </div>
         )}
       </section>
@@ -91,9 +109,9 @@ export default async function HomePage() {
           <h2 className="text-3xl font-bold text-center text-gray-800 mb-12">How It Works</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {[
-              { icon: '📦', title: 'Post Surplus Food', desc: 'Donors list available food with details like quantity, type, and pickup location.' },
+              { icon: '📦', title: 'Post a Donation', desc: 'List food, clothes, or books with details like quantity, type, and pickup location.' },
               { icon: '🔔', title: 'NGOs Get Notified', desc: 'Registered NGOs and volunteers browse and claim available donations near them.' },
-              { icon: '🚗', title: 'Collect & Distribute', desc: 'Volunteers pick up the food and ensure it reaches those who need it most.' },
+              { icon: '🚗', title: 'Collect & Distribute', desc: 'Volunteers pick up items and ensure they reach those who need it most.' },
             ].map((step) => (
               <div key={step.title} className="text-center">
                 <div className="text-5xl mb-4">{step.icon}</div>

@@ -21,6 +21,12 @@ enum DonationStatus {
   EXPIRED
 }
 
+enum DonationCategory {
+  FOOD
+  CLOTHES
+  BOOKS
+}
+
 model User {
   id            String    @id @default(cuid())
   name          String?
@@ -77,13 +83,14 @@ model VerificationToken {
 }
 
 model Donation {
-  id          String         @id @default(cuid())
+  id          String             @id @default(cuid())
   title       String
   description String?
   quantity    String
-  foodType    String
-  expiresAt   DateTime
-  status      DonationStatus @default(AVAILABLE)
+  category    DonationCategory   @default(FOOD)
+  itemType    String
+  expiresAt   DateTime?
+  status      DonationStatus     @default(AVAILABLE)
   address     String
   city        String
   lat         Float?
@@ -91,8 +98,8 @@ model Donation {
   imageUrl    String?
   donorId     String
   claimedById String?
-  createdAt   DateTime       @default(now())
-  updatedAt   DateTime       @updatedAt
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
 
   donor     User  @relation("DonorDonations", fields: [donorId], references: [id])
   claimedBy User? @relation("ClaimedDonations", fields: [claimedById], references: [id])
