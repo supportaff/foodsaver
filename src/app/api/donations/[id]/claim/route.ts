@@ -3,12 +3,16 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
-export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
+  const { id } = await params;
   const user = session.user as any;
-  const donation = await prisma.donation.findUnique({ where: { id: params.id } });
+  const donation = await prisma.donation.findUnique({ where: { id } });
 
   if (!donation) return NextResponse.json({ error: 'Not found' }, { status: 404 });
   if (donation.status !== 'AVAILABLE') {
@@ -19,7 +23,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   }
 
   const updated = await prisma.donation.update({
-    where: { id: params.id },
+    where: { id },
     data: { status: 'CLAIMED', claimedById: user.id },
   });
 
